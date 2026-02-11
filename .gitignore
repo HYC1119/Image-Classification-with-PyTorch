@@ -1,6 +1,6 @@
 # ignore data 
-mnist.npz
-mnist_model.npy
+.data/
+data/
 
 # MacOS system files
 .DS_Store
@@ -222,3 +222,4 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+data/
