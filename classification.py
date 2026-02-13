@@ -1,11 +1,21 @@
 import os
-import torch 
+import torch
 import torch.nn as nn
-import torchvision 
+import torch.optim as optim
+import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import torch.utils.data as Data
-from torch.autograd import Variable 
+from torch.autograd import Variable
+
+
+# ====== Store trained data ======
+path = 'output.txt'
+f = open(path, 'w')
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Using {device}")
+print()
 
 
 # ====== Set Hyperparameters ======
@@ -17,41 +27,49 @@ MODELS_PATH = './models'
 
 # ======  Transform datasets to tensors of nornmalized range [-1, 1] ======
 transform = transforms.Compose(
-    [transforms.ToTensor(), 
-     transforms.Normalize((0.5, 0.5, 0.5), 
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5),
                           (0.5, 0.5, 0.5))])
 
 
 # ====== Load CIFAR10 Dataset ======
 trainset = torchvision.datasets.CIFAR10(
-    root='./data', 
-    train=True, 
-    download=True, 
+    root='./data',
+    train=True,
+    download=True,
     transform=transform
 )
 
 trainloader = Data.DataLoader(
-    trainset, 
-    batch_size=BATCH_SIZE, 
-    shuffle=True, 
+    trainset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
     num_workers=0
 )
 
 testset = torchvision.datasets.CIFAR10(
-    root='./data',                                    
-    train=False, 
-    download=True, 
+    root='./data',
+    train=False,
+    download=True,
     transform=transform
 )
 
 testloader = Data.DataLoader(
-    testset, 
-    batch_size=BATCH_SIZE, 
-    shuffle=False, 
+    testset,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
     num_workers=0
 )
 
 classes = ('plane', 'car', 'bird', 'cat',
            'deer',  'dog', 'frog', 'ship', 'truck')
 
- 
+
+# ====== Create Model (VGG19) ======
+vgg19 = torchvision.models.vgg19_bn(num_classes=10)
+vgg19.to(device)
+
+
+# ====== Loss function & Optimimzer ======
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(vgg19.parameters(), lr=LR, momentum=0.9)
