@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,7 +12,8 @@ from torch.autograd import Variable
 
 # ====== Store trained data ======
 path = 'output.txt'
-f = open(path, 'w')
+with open(path, 'w') as f:
+    f.write("Training Log\n")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using {device}")
@@ -21,15 +23,15 @@ print()
 # ====== Set Hyperparameters ======
 DOWNLOAD_DATASET = True
 LR = 0.001
-BATCH_SIZE = 10
-MODELS_PATH = './models'
+BATCH_SIZE = 32
+EPOCHS = 10
 
 
 # ======  Preprocessing: Transform datasets to tensors of nornmalized range [-1, 1] ======
 transform = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5),
-                          (0.5, 0.5, 0.5))])
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+     ])
 
 
 # ====== Load CIFAR10 Dataset ======
@@ -77,32 +79,24 @@ optimizer = optim.SGD(vgg19.parameters(), lr=LR, momentum=0.9)
 
 # ====== Training part ======
 # ------ Set all data to 0 & Reset time ------
-print("Strat training...")
+print("Start training...")
 start = time.time()
-training_acc = []
-training_loss = []
-training_acc = []
-validation_acc = []
-validation_loss = []
 
 
 # ------ Start traing loop ------
-for epoch in range(epochs):
+for epoch in range(EPOCHS):
     print(f'-------------------- epoch {epoch+1} --------------------')
     vgg19.train()
 
     # ------ Reset when a new epoch ------
-    total = 0
-    total_val = 0
     running_loss = 0.0
-    train_loss = 0.0
-    train_correct = 0.0
-    val_correct = 0
-    val_loss = 0.0
+    total_train = 0
+    train_correct = 0
 
 # ------ Calculate every batch ------
     for i, data in enumerate(trainloader, 0):
-        inputs, labels = data[0].to(device), data[1].to(device)
+        inputs, labels = data
+        inputs, labels = inputs.to(device), labels.to(device)
 
         # Set gradient to 0
         optimizer.zero_grad()
@@ -115,20 +109,18 @@ for epoch in range(epochs):
 
         # Calculate batch loss
         running_loss += loss.item()
-    
-        # Calculate epoch loss
-        train_loss += outputs.shape[0] * loss.item()
-
-        # Calculate epoch accuracy
         _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
+        total_train += labels.size(0)
         train_correct += (predicted == labels).sum().item()
 
         # Output training process & Reset batch loss every 50 batch
-        if i % 50 == 49:
-            print(
-                f'[{epoch + 1}/{epochs}, {i + 1:3d}] loss: {running_loss / 50:.3f} time:{(time.time()-start)/60:.2f}')
+        if i % 100 == 99:
+            avg_loss = running_loss / 100
+            elapsed_time = (time.time() - start_time) / 60
+            print(f'[Epoch {epoch + 1}, Batch {i + 1:3d}] loss: {avg_loss:.3f} | time: {elapsed_time:.2f} min')
             running_loss = 0.0
+
+
 
 print("Finish training!")
 
