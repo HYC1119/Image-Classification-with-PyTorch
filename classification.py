@@ -24,7 +24,7 @@ print()
 DOWNLOAD_DATASET = True
 LR = 0.001
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 100
 
 
 # ======  Preprocessing: Transform datasets to tensors of nornmalized range [-1,1] ======
@@ -41,6 +41,11 @@ trainset = torchvision.datasets.CIFAR10(
     download=True,
     transform=transform
 )
+
+# Testing
+trainset = Data.Subset(trainset, range(100))
+trainloader = Data.DataLoader(
+    trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
 trainloader = Data.DataLoader(
     trainset,
@@ -136,7 +141,7 @@ for epoch in range(EPOCHS):
 
     val_acc = 100 * val_correct / total_val
     train_acc = 100 * train_correct / total_train
-    print(f"End of Epoch {epoch + 1} | Train Acc: {trai_acc: .2f}% | Val Acc: {val_acc: .2f}%")
+    print(f"End of Epoch {epoch + 1} | Train Acc: {train_acc: .2f}% | Val Acc: {val_acc: .2f}%")
 
     with open(path, 'a') as f:
         f.write(f"Epoch {epoch + 1}: Train Acc {train_acc: .2f}%, Val Acc {val_acc: .2f}%\n")
