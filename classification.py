@@ -27,7 +27,7 @@ BATCH_SIZE = 32
 EPOCHS = 10
 
 
-# ======  Preprocessing: Transform datasets to tensors of nornmalized range [-1, 1] ======
+# ======  Preprocessing: Transform datasets to tensors of nornmalized range [-1,1] ======
 transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -85,7 +85,7 @@ start = time.time()
 
 # ------ Start traing loop ------
 for epoch in range(EPOCHS):
-    print(f'-------------------- epoch {epoch+1} --------------------')
+    print(f'-------------------- epoch {epoch + 1} --------------------')
     vgg19.train()
 
     # ------ Reset when a new epoch ------
@@ -102,7 +102,7 @@ for epoch in range(EPOCHS):
         optimizer.zero_grad()
 
         # Forward + backward + optimize
-        ouputs = vgg19(inputs)
+        outputs = vgg19(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -116,23 +116,29 @@ for epoch in range(EPOCHS):
         # Output training process & Reset batch loss every 50 batch
         if i % 100 == 99:
             avg_loss = running_loss / 100
-            elapsed_time = (time.time() - start_time) / 60
+            elapsed_time = (time.time() - start) / 60
             print(f'[Epoch {epoch + 1}, Batch {i + 1:3d}] loss: {avg_loss:.3f} | time: {elapsed_time:.2f} min')
             running_loss = 0.0
 
 
+# ------ Validation part (Verified every epoch) ------
+    vgg19.eval()
+    val_correct = 0
+    total_val = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            images, labels = images.to(device), labels.to(device)
+            outputs = vgg19(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total_val += labels.size(0)
+            val_correct += (predicted == labels).sum().item()
+
+    val_acc = 100 * val_correct / total_val
+    train_acc = 100 * train_correct / total_train
+    print(f"End of Epoch {epoch + 1} | Train Acc: {trai_acc: .2f}% | Val Acc: {val_acc: .2f}%")
+
+    with open(path, 'a') as f:
+        f.write(f"Epoch {epoch + 1}: Train Acc {train_acc: .2f}%, Val Acc {val_acc: .2f}%\n")
 
 print("Finish training!")
-
-
-
-
-
-
-
-
-
-
-
-
-
