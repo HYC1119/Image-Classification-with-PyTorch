@@ -147,3 +147,12 @@ for epoch in range(EPOCHS):
         f.write(f"Epoch {epoch + 1}: Train Acc {train_acc: .2f}%, Val Acc {val_acc: .2f}%\n")
 
 print("Finish training!")
+
+
+# ====== Model saving ======
+MODELS_PATH = './models'
+if not os.path.exists(MODELS_PATH):
+    os.makedirs(MODELS_PATH)
+
+torch.save(vgg19.state_dict(), os.path.join(MODELS_PATH, 'vgg10_cifar10.pth'))
+print(f"Model saved to {MODELS_PATH}/vgg10_cifar10.pth")
