@@ -10,6 +10,11 @@ import torch.utils.data as Data
 from torch.autograd import Variable
 
 
+# ====== Device loading ======
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = CNN_MODEL().to(device)
+
+
 # ====== Load dataset =======
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -47,9 +52,40 @@ class CNN_MODEL(nn.module):
         x = self.fc_layer(x)
         return x
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = CNN_MODEL().to(device)
 
+# ====== Set loss function ======
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+epochs = 20
+history = {'loss': [], 'train_acc': [], 'test_acc': []}
 
-# ====== Set loss function ====== 
+for epoch in range(epochs):
+    model.train()
+    running_loss, correct, total = 0.0, 0, 0
     
+    for images, labels in trainloader:
+        images, labels = images.to(device), labels.to(device)
+        
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        
+        running_loss += loss.item()
+        _, predicted = outputs.max(1)
+        total += labels.size(0)
+        corrct += predicted.eq(labels).sum().item()
+        
+    # ------ Calculate testset accuracy ------
+    model.eval()
+    test_correct, test_total = 0, 0
+    with torch.no_grad():
+        for images, labels in testloader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = outputs.max(1)
+            test_total += labels.size(0)
+            test_correct += predicted.eq(labels).sum().item()
+
+
