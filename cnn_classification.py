@@ -10,11 +10,6 @@ import torch.utils.data as Data
 from torch.autograd import Variable
 
 
-# ====== Device loading ======
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = CNN_MODEL().to(device)
-
-
 # ====== Load dataset =======
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -53,6 +48,11 @@ class CNN_MODEL(nn.module):
         return x
 
 
+# ====== Device loading ======
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = CNN_MODEL().to(device)
+
+
 # ====== Set loss function ======
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -87,5 +87,11 @@ for epoch in range(epochs):
             _, predicted = outputs.max(1)
             test_total += labels.size(0)
             test_correct += predicted.eq(labels).sum().item()
-
-
+    
+    # ------ Store history ------
+    history['loss'].append(running_loss / len(trainloader))
+    history['train_acc'].append(100. * correct / total)
+    history['test_acc'].append(100. * test_correct / test_total)
+    
+    print(f"Epoch {epoch+1}/{epochs} | Loss: {history['loss'][-1]:.4f} | "
+          f"Train acc: {history['train_acc'][-1]:.2f}% | Test acc: {history['test_acc'][-1]:.2f}%")
