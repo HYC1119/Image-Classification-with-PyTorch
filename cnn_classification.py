@@ -46,4 +46,10 @@ class CNN_MODEL(nn.module):
         x = x.view(x.size(0), -1)
         x = self.fc_layer(x)
         return x
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = CNN_MODEL().to(device)
+
+
+# ====== Set loss function ====== 
     
