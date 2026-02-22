@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -118,3 +119,49 @@ plt.legend()
 
 plt.tight_layout()
 plt.show()
+
+
+# ====== Define class name ======
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+def show_random_predictions(model, testloader, device):
+    print("\nProducing predicted image...")
+    # change to evaluate mode
+    model.eval()
+    
+    # Get image and label in a batch
+    detaiter = iter(testloader)
+    images, labels = next(detaiter)
+    
+    # Put into GPU or CPU to predict
+    images_device, labels_device = images.to(device), labels.to(device)
+    with torch.no_grad():
+        outputs = model(images_device)
+        _, predicted = torch.max(outputs, 1)
+        
+    # Move predicted result to CPU
+    predicted = predicted.cpu()
+    
+    # Prepare to plot 
+    fig = plt.figure(figsize=(15, 6))
+    
+    # Only shows first 10 pictures 
+    for i in range(10):
+        ax = fig.add_subplot(2, 5, i+1, xticks=[], yticks=[])
+        
+        img = images[i] / 2 + 0.5
+        npimg = img.numpy()
+        
+        plt.imshow(np.transpose(npimg, (1, 2, 0)))
+        
+        pred_class = classes[predicted[i]]
+        true_class = classes[labels[i]]
+        color = 'green' if predicted[i] == labels[i] else 'red'
+        
+        ax.set_title(f"Pred: {pred_class}\nTrue: {true_class}", color=color)
+    
+    plt.tight_layout()
+    plt.show()
+
+# ====== Call this function after training ======
+show_random_predictions(model, testloader, device)    
