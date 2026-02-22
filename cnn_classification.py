@@ -95,3 +95,26 @@ for epoch in range(epochs):
     
     print(f"Epoch {epoch+1}/{epochs} | Loss: {history['loss'][-1]:.4f} | "
           f"Train acc: {history['train_acc'][-1]:.2f}% | Test acc: {history['test_acc'][-1]:.2f}%")
+
+
+# ====== Plotting learning curves ======
+plt.figure(figsize=(12, 5))
+
+# ------ Plot loss curve ------
+plt.subplot(1, 2, 1)
+plt.plot(history['loss'], label='Training loss', color='blue')
+plt.title("Training loss over Epochs")
+plt.xlabel("Epochs")
+plt.legend()
+
+# ------ Plot accuracy curve ------
+plt.subplot(1, 2, 2)
+plt.plot(history['train_acc'], label='Train accuracy', color='green')
+plt.plot(history['test_acc'], label='Test accuracy', color='orange')
+plt.title("Acuracy over Epochs")
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy (%)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
