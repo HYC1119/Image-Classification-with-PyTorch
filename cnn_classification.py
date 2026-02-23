@@ -135,15 +135,25 @@ for epoch in range(epochs):
         correct += predicted.eq(labels).sum().item()
         
     # ------ Calculate testset accuracy ------
+    class_correct = list(0. for i in range(10))
+    class_total = list(0. for i in range(10))
+    
     model.eval()
     test_correct, test_total = 0, 0
     with torch.no_grad():
         for images, labels in testloader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            _, predicted = outputs.max(1)
-            test_total += labels.size(0)
-            test_correct += predicted.eq(labels).sum().item()
+            _, predicted = outputs.max(outputs, 1)
+            c = (predicted == labels).squeeze()
+            for i in range(len(labels)):
+                label = labels[i]
+                class_correct[label] += c[i].item()
+                class_total[label] += 1
+    
+    print("\n ====== Accuracy of each class ======")
+    for i in range(10):
+        print(f"{classes[i]:>5s} : {100 * class_correct[i] / class_total[i]:.1f}%")            
     
     # ------ Store history ------
     history['loss'].append(running_loss / len(trainloader))
