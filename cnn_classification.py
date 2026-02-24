@@ -48,6 +48,14 @@ class CNN_MODEL(nn.Module):
             nn.ReLU(),
             nn.Linear(512, 10)
         )
+        
+        # ------ Output Fully connected layer independently ------
+        self.fc_layer = nn.Sequential(
+            nn.Linear(64 * 8 * 8, 512),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(512, 10)
+        )
     
     def forward(self, x):
         x = self.conv_layer(x)
@@ -114,9 +122,6 @@ for epoch in range(epochs):
     model.train()
     running_loss, correct, total = 0.0, 0, 0
     
-    if (epoch + 1) % 5 == 0:
-        show_random_predictions(model, testloader, device)
-    
     for images, labels in trainloader:
         images, labels = images.to(device), labels.to(device)
         
@@ -141,7 +146,7 @@ for epoch in range(epochs):
         for images, labels in testloader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            _, predicted = outputs.max(outputs, 1)
+            _, predicted = outputs.max(1)
             # Test overall accuracy
             test_total += labels.size(0)
             test_correct += predicted.eq(labels).sum().item()
@@ -164,12 +169,13 @@ for epoch in range(epochs):
     if (epoch + 1) % 5 == 0:
         show_random_predictions(model, testloader, device)
 
-# ------ Finish training, print each calss' value
+# ====== Finish training, print each calss' value ======
 print("\n ====== Accuracy of each class ======")
 for i in range(10):
     print(f"{classes[i]:>5s} : {100 * class_correct[i] / class_total[i]:.1f}%")    
     
 show_random_predictions(model, testloader, device)
+
 
 # ====== Plotting learning curves ======
 plt.figure(figsize=(12, 5))
