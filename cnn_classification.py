@@ -32,7 +32,7 @@ testloader = Data.DataLoader(testset, batch_size=32, shuffle=False)
 
 
 # ====== Define a CNN model ======
-class CNN_MODEL(nn.module):
+class CNN_MODEL(nn.Module):
     def __init__(self):
         super(CNN_MODEL, self).__init__()
         self.conv_layer = nn.Sequential(
@@ -103,9 +103,6 @@ def show_random_predictions(model, testloader, device):
     plt.tight_layout()
     plt.show()
 
-# ====== Call this function after training ======
-show_random_predictions(model, testloader, device)  
-
 
 # ====== Set loss function ======
 criterion = nn.CrossEntropyLoss()
@@ -145,15 +142,16 @@ for epoch in range(epochs):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             _, predicted = outputs.max(outputs, 1)
+            # Test overall accuracy
+            test_total += labels.size(0)
+            test_correct += predicted.eq(labels).sum().item()
+            
+            # Calculate accuracy of each class
             c = (predicted == labels).squeeze()
             for i in range(len(labels)):
                 label = labels[i]
                 class_correct[label] += c[i].item()
                 class_total[label] += 1
-    
-    print("\n ====== Accuracy of each class ======")
-    for i in range(10):
-        print(f"{classes[i]:>5s} : {100 * class_correct[i] / class_total[i]:.1f}%")            
     
     # ------ Store history ------
     history['loss'].append(running_loss / len(trainloader))
@@ -162,7 +160,16 @@ for epoch in range(epochs):
     
     print(f"Epoch {epoch+1}/{epochs} | Loss: {history['loss'][-1]:.4f} | "
           f"Train acc: {history['train_acc'][-1]:.2f}% | Test acc: {history['test_acc'][-1]:.2f}%")
+    
+    if (epoch + 1) % 5 == 0:
+        show_random_predictions(model, testloader, device)
 
+# ------ Finish training, print each calss' value
+print("\n ====== Accuracy of each class ======")
+for i in range(10):
+    print(f"{classes[i]:>5s} : {100 * class_correct[i] / class_total[i]:.1f}%")    
+    
+show_random_predictions(model, testloader, device)
 
 # ====== Plotting learning curves ======
 plt.figure(figsize=(12, 5))
