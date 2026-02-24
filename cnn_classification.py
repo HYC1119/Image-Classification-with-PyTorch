@@ -113,10 +113,12 @@ def show_random_predictions(model, testloader, device):
 
 
 # ====== Set loss function ======
+epochs = 20
+best_acc = 0.0
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-epochs = 20
 history = {'loss': [], 'train_acc': [], 'test_acc': []}
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
 
 for epoch in range(epochs):
     model.train()
@@ -163,8 +165,16 @@ for epoch in range(epochs):
     history['train_acc'].append(100. * correct / total)
     history['test_acc'].append(100. * test_correct / test_total)
     
+    current_acc = 100. * test_correct / test_total
+    if current_acc > best_acc:
+        best_acc = current_acc
+        torch.save(model.state_dict(), 'best_model.pth')
+        print(f"Find better model! (Accuracy: {best_acc:.2f}%)")
+    
     print(f"Epoch {epoch+1}/{epochs} | Loss: {history['loss'][-1]:.4f} | "
           f"Train acc: {history['train_acc'][-1]:.2f}% | Test acc: {history['test_acc'][-1]:.2f}%")
+    
+    scheduler.step()
     
     if (epoch + 1) % 5 == 0:
         show_random_predictions(model, testloader, device)
